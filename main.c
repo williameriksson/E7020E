@@ -43,7 +43,7 @@ SOFTWARE.
 int main(void)
 {
 
-
+/*
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; //Enable the GPIOC output
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //Enable the GPIOA output
 	RCC->CFGR |= (0b11<<21);  //Sets MCO1 output to be PLL clock
@@ -53,7 +53,7 @@ int main(void)
 	GPIOC->OSPEEDR |= (1<<19); //Changes the the output speed to high GPIOC 9
 	GPIOA->MODER |= (1<<17); //Changes mode to AF GPIOA 8
 	GPIOA->OSPEEDR |= (1<<17); //Changes output speed to High GPIOA 8
-
+*/
   /**
   *  IMPORTANT NOTE!
   *  The symbol VECT_TAB_SRAM needs to be defined when building the project
@@ -67,8 +67,10 @@ int main(void)
   /* TODO - Add your application code here */
 
   /* Infinite loop */
-	initUart();
-	pollUart();
+
+	startUpSequence();
+	//initUart();
+	//pollUart();
 	//uint8_t text [] = "TEST";
 	//USART_PutString(text);
 }

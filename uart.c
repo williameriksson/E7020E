@@ -8,7 +8,7 @@
 #include <string.h>
 
 #define BAUDRATE 19200
-
+#define NUMELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 /*
  * PA0 USART2_CTS with AF7
  * PA1 USART2_RTS with AF7
@@ -17,11 +17,12 @@
  * PA4 USART2_CK with AF7
  * */
 
-
+int blinkRate = 500;
+int blinkEnable = 1;
 
 void initUart() {
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // Start the clock for USART2
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Start the clock for the GPIOA
+	//RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Start the clock for the GPIOA
 	GPIOA->MODER |= GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1 | GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1; // Put AF?
 
 	GPIOA->AFR[0] |= GPIO_AF7_USART2;
@@ -36,13 +37,54 @@ void initUart() {
 }
 
 
+void startUpSequence() {
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Start the clock for the GPIOA
+	GPIOA->MODER |= (1<<10); //GPIOA 5 to General purpose output.
+	__disable_irq(); //Disable global interrupts while setting TIM2 up
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //Enable clock for TIM2
+	TIM2->DIER |= TIM_DIER_UIE; //Enable update interrupt event
+	TIM2->PSC = 50-1; //Set prescaler to get timer at 1MHz
+	TIM2->ARR = 1000000-1; //Set Auto-reload register
+
+	TIM2->CR1 |= TIM_CR1_CEN; //Enable TIM2
+	__enable_irq(); //Enable global interrupts
+
+	NVIC_EnableIRQ(TIM2_IRQn); //Enable TIM2 interrupt handler
+	NVIC_SetPriority(TIM2_IRQn, 35); //Set interrupt priority
+
+	initUart();
+
+	uint8_t initString1 [] = "System Operational";
+	uint8_t initString2 [] = "status on";
+	USART_PutString(initString1);
+	USART_PutString(initString2);
+
+	pollUart();
+
+
+}
+
+void TIM2_IRQHandler (void){
+	static int count = 0;
+
+	if (TIM2->SR & TIM_SR_UIF) { //Check interrupt flag
+
+		TIM2->SR &= ~TIM_SR_UIF; //Reset interrupt flag
+		if (blinkEnable)
+		GPIOA->ODR ^= (1<<5);	//Toggle LED
+	}
+	count++;
+	if (count == 6) blinkEnable = 0;
+}
+
+
 
 void pollUart() {
 	uint8_t on [] = "status on";
 	uint8_t off [] = "status off";
-	uint8_t blink [] = "status blink";
-	uint8_t error [] = "ERROR, could not parse...";
-	char oncmp [] = "on";
+	uint8_t blink [] = "status blink ";
+	uint8_t error [] = "ERROR, could not parse ";
+	uint8_t tooLong [] = "ERROR, string too long";
 
 
 	while (1) {
@@ -50,25 +92,99 @@ void pollUart() {
 
 		}
 
-		int MAXWORDLEN = 50;
+		int MAXWORDLEN = 16;
 		char received [MAXWORDLEN];
+
 		int i = 0;
+		int isTooLong = 0;
 		while (1) {
-			received[i] = USART2->DR;
-			if (received[i] == '\n') break;
-			if (i == MAXWORDLEN - 1) break;
-			i++;
+			if ((USART2->SR & USART_SR_RXNE)) {
+				char temp = USART2->DR;
+				if (temp == '\n' || (int) temp == 13) {
+					break;
+				}
+
+				if (i == MAXWORDLEN) {
+					isTooLong = 1;
+				}
+
+				if (!isTooLong) {
+					received[i] = temp;
+					i++;
+				}
+
+
+			}
+
 		}
 
 
-		if (received[0] == oncmp[0] && received[1] == oncmp[1] ) {
+
+		char string [i];
+		memcpy(string, received, i);
+		string[i] = '\0';
+
+
+		char blinkValue [i - 6];
+		//char newString [5];
+		char newString [5] = {0, 0, 0, 0, 0};
+
+		if (i > 6) {
+			for (int j = 0; j <= i - 6; j++) {
+				blinkValue[j] = string[j + 6];
+			}
+
+			sscanf(blinkValue, "%d", &blinkRate);
+
+			for (int k = 0; k <= 5; k++) {
+				newString[k] = string[k];
+			}
+			newString[5] = '\0';
+
+		}
+
+
+		// strcmp return 0 if the char arrays are equal else 1.
+		if (strcmp(string, "on") == 0) {
 			USART_PutString(on);
-		} else if (*received == *off){
+		} else if (strcmp(string, "off") == 0){
 			USART_PutString(off);
-		} else if (*received == *blink) {
-			USART_PutString(blink);
+		} else if (strcmp(newString, "blink") == 0) {
+			blinkEnable = 1;
+			TIM2->ARR = blinkRate * 1000 -1; //Set Auto-reload register
+
+			int sizePreString = NUMELEMS(blink);
+			int sizePostString = NUMELEMS(blinkValue);
+
+			char combined [sizePreString + sizePostString];
+
+			for (int z = 0; z < sizePreString; z++) {
+				combined[z] = blink[z];
+			}
+
+			for (int y = 0; y < sizePostString; y++) {
+				combined[y + sizePreString - 1] = blinkValue[y];
+			}
+
+			USART_PutString(combined);
+		} else if (isTooLong) {
+			isTooLong = 0;
+			USART_PutString(tooLong);
 		} else {
-			USART_PutString(error);
+
+			int sizePreString = NUMELEMS(error);
+			int sizePostString = NUMELEMS(string);
+
+			char combined [sizePreString + sizePostString];
+
+			for (int z = 0; z < sizePreString; z++) {
+				combined[z] = error[z];
+			}
+
+			for (int y = 0; y < sizePostString; y++) {
+				combined[y + sizePreString - 1] = string[y];
+			}
+			USART_PutString(combined);
 		}
 	}
 
@@ -88,5 +204,6 @@ void USART_PutString(uint8_t * str) {
 		USART_PutChar(*str);
 		str++;
 	}
+	USART_PutChar(13);
 }
 
