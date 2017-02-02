@@ -39,85 +39,44 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/** @addtogroup STM32F4xx_HAL_Examples
-  * @{
-  */
+/**
+ * Setup for TIM2
+ */
 
-/** @addtogroup GPIO_IOToggle
-  * @{
-  */ 
+void initSetup (void) {
+	__disable_irq(); //Disable global interrupts while setting TIM2 up
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //Enable clock for TIM2
+	TIM2->DIER |= TIM_DIER_UIE; //Enable update interrupt event
+	TIM2->PSC = 50-1; //Set prescaler to get timer at 1MHz
+	TIM2->ARR = 1000000-1; //Set Auto-reload register
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-//static GPIO_InitTypeDef  GPIO_InitStruct;
+	TIM2->CR1 |= TIM_CR1_CEN; //Enable TIM2
+	__enable_irq(); //Enable global interrupts
 
-/* Private function prototypes -----------------------------------------------*/
-//static void SystemClock_Config(void);
-static void Error_Handler(void);
-
-/* Private functions ---------------------------------------------------------*/
+	NVIC_EnableIRQ(TIM2_IRQn); //Enable TIM2 interrupt handler
+	NVIC_SetPriority(TIM2_IRQn, 35); //Set interrupt priority
+}
 
 /**
   * @brief  Main program
   * @param  None
   * @retval None
   */
-void initSetup (void) {
-	__disable_irq();
-	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-	TIM2->DIER |= TIM_DIER_UIE;
-	TIM2->PSC = 50-1;
-	TIM2->ARR = 1000000-1;
-
-	TIM2->CR1 |= TIM_CR1_CEN;
-	__enable_irq();
-
-	NVIC_EnableIRQ(TIM2_IRQn);
-	NVIC_SetPriority(TIM2_IRQn, 35);
-}
 
 int main(void) {
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //Enable GPIOA
 	GPIOA->MODER |= (1<<10); //GPIOA 5 to General purpose output.
 	initSetup();
-	while (1){}
+	while (1){} //Infinte loop
 
 
 }
 
 void TIM2_IRQHandler (void){
 
-	if (TIM2->SR & TIM_SR_UIF) {
+	if (TIM2->SR & TIM_SR_UIF) { //Check interrupt flag
 
-		TIM2->SR &= ~TIM_SR_UIF;
-		//TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
-		GPIOA->ODR ^= (1<<5);
+		TIM2->SR &= ~TIM_SR_UIF; //Reset interrupt flag
+		GPIOA->ODR ^= (1<<5);	//Toggle LED
 	}
-//	if (GPIOA_ODR_ODR5 == 0) {
-//
-//	}
-//	else {
-//
-//	}
-	//GPIOA->ODR ^= (1<<5);
-//	static int toggle = 1;
-//	if (toggle == 1){
-//		GPIOA->ODR |= (1<<5);
-//		toggle = 0;
-//	} else {
-//
-//		GPIOA->ODR &= ~(1<<5);
-//		toggle = 1;
-//	}
 }
-
-
-//static void Error_Handler(void)
-//{
-//  while(1)
-//  {
-//  }
-//}
-
