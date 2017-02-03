@@ -19,6 +19,7 @@
 
 int blinkRate = 500;
 int blinkEnable = 1;
+int statusOn = 1;
 
 void initUart() {
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // Start the clock for USART2
@@ -100,39 +101,36 @@ void pollUart() {
 		while (1) {
 			if ((USART2->SR & USART_SR_RXNE)) {
 				char temp = USART2->DR;
-				if (temp == '\n' || (int) temp == 13) {
+
+				if (temp == '\n') {
 					break;
 				}
-
+				if (temp == '\r') {
+					continue;
+				}
 				if (i == MAXWORDLEN) {
 					isTooLong = 1;
 				}
-
 				if (!isTooLong) {
 					received[i] = temp;
 					i++;
 				}
-
-
 			}
-
 		}
-
-
 
 		char string [i];
 		memcpy(string, received, i);
 		string[i] = '\0';
 
-
 		char blinkValue [i - 6];
 		//char newString [5];
 		char newString [5] = {0, 0, 0, 0, 0};
 
-		if (i > 6) {
+		if (i > 6 && !isTooLong) {
 			for (int j = 0; j <= i - 6; j++) {
 				blinkValue[j] = string[j + 6];
 			}
+			//blinkValue[i-6] = '\0';
 
 			sscanf(blinkValue, "%d", &blinkRate);
 
@@ -141,20 +139,39 @@ void pollUart() {
 			}
 			newString[5] = '\0';
 
-		}
+			// Check so that the bytes after blink represents integers
+			// else, put some garbish at the first position so it does not match it.
+			for (int k = 0; k < NUMELEMS(blinkValue) - 1; k++) {
+				if (!(blinkValue[k] >= 48 && blinkValue[k] <= 57)) {
+					newString[0] = 0;
+					break;
+				}
+			}
 
+
+
+		}
 
 		// strcmp return 0 if the char arrays are equal else 1.
 		if (strcmp(string, "on") == 0) {
+			statusOn = 1;
+			blinkEnable = 1;
 			USART_PutString(on);
 		} else if (strcmp(string, "off") == 0){
+			statusOn = 0;
+			blinkEnable = 0;
 			USART_PutString(off);
 		} else if (strcmp(newString, "blink") == 0) {
-			blinkEnable = 1;
-			TIM2->ARR = blinkRate * 1000 -1; //Set Auto-reload register
+			if (statusOn) {
+				blinkEnable = 1;
+			}
 
+			__disable_irq();
+			TIM2->ARR = blinkRate * 1000 -1; //Set Auto-reload register
+			TIM2->CNT = 0x0;
+			__enable_irq();
 			int sizePreString = NUMELEMS(blink);
-			int sizePostString = NUMELEMS(blinkValue);
+			int sizePostString = NUMELEMS(blinkValue) + 1;
 
 			char combined [sizePreString + sizePostString];
 
@@ -204,6 +221,7 @@ void USART_PutString(uint8_t * str) {
 		USART_PutChar(*str);
 		str++;
 	}
-	USART_PutChar(13);
+	USART_PutChar('\r');
+
 }
 
