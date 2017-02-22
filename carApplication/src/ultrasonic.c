@@ -46,6 +46,7 @@ void initUltrasonic (void) {
 	//GPIOA->MODER |= (1 << 10); //GPIOA 5 to output function.
 	GPIOA->MODER |= (1 << 1); // GPIOA 0 to Alternate function.
 	GPIOA->AFR[0] |= GPIO_AF1_TIM2; // Select AF1 (TIM2 channel 1) for A0
+	GPIOA->AFR[0] |= GPIO_AF1_TIM2 << 20;
 
 	TIM2->DIER |= TIM_DIER_UIE; //Enable update interrupt event
 	TIM2->PSC = 100-1; //Set prescaler to get timer at 1MHz
@@ -56,21 +57,15 @@ void initUltrasonic (void) {
 	TIM2->CCER |= TIM_CCER_CC1E; // 1: On - OC1 signal is output on the corresponding output pin
 	TIM2->CR1 |= TIM_CR1_CEN; //Enable TIM2
 
-
 	TIM3->PSC = 100-1; // Prescale to 1Mhz
-	TIM3->ARR = 0xFFFF;
+	TIM3->ARR = 0xFFFF; // Auto reload at max (should not be reached in practice)
 	TIM3->CR1 |= TIM_CR1_CEN; // Enable TIM3
 
-
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
-	SYSCFG->EXTICR[0] |= 1; // Set external interrupt EXTI0 for PB0
-	EXTI->RTSR |= EXTI_RTSR_TR0; // Enable interrupt on rising edge
-	EXTI->FTSR |= EXTI_FTSR_TR0; // Enable interrupt on falling edge
-	EXTI->IMR |= EXTI_IMR_MR0; // Mask the interrupt register
-
-
-
-
+	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PB; // Set external interrupt EXTI0 for PB0
+	EXTI->RTSR |= EXTI_RTSR_TR0; // Enable interrupt on rising edge for TR0
+	EXTI->FTSR |= EXTI_FTSR_TR0; // Enable interrupt on falling edge for TR0
+	EXTI->IMR |= EXTI_IMR_MR0; // Unmask the interrupt register for MR0 (Active for PB0)
 	__enable_irq(); //Enable global interrupts
 
 	NVIC_SetPriority(EXTI0_IRQn, 15); // Set the priority, this should probably be changed..
