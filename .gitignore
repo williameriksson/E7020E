@@ -1,5 +1,8 @@
-*
-
-!.gitignore
-!*.c
-!*.h
+.metadata/
+carApplication/.settings
+carApplication/Debug
+carApplication/Drivers
+carApplication/*.cproject
+carApplication/*.launch
+carApplication/*.ld
+carApplication/.project
