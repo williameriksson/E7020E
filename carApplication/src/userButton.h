@@ -5,9 +5,8 @@
  *      Author: sebas
  */
 
-#ifndef USERBUTTON_H_
-#define USERBUTTON_H_
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_nucleo.h"
+#include "motorControl.h"
 
-void initUserButton();
-
-#endif /* USERBUTTON_H_ */
+void initUserButton(void);

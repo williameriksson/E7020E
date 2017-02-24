@@ -1,5 +1,4 @@
 #include "userButton.h"
-#include "motorControl.h"
 
 void initUserButton() {
 	__disable_irq();
@@ -16,17 +15,7 @@ void initUserButton() {
 	NVIC_SetPriority(EXTI15_10_IRQn, 40);
 }
 
-int toggle = 0;
 void EXTI15_10_IRQHandler(void) {
 	EXTI->PR |= EXTI_PR_PR13;
-	if(toggle) {
-		toggle = 0;
-		//turnLeft();
-		accelerate();
-	}
-	else {
-		toggle = 1;
-		//turnRight();
-		accelerate();
-	}
+	accelerate();
 }
