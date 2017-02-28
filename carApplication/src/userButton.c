@@ -14,8 +14,16 @@ void initUserButton() {
 	NVIC_EnableIRQ(EXTI15_10_IRQn);
 	NVIC_SetPriority(EXTI15_10_IRQn, 40);
 }
-
+int toggle = 0;
 void EXTI15_10_IRQHandler(void) {
 	EXTI->PR |= EXTI_PR_PR13;
-	accelerate();
+	enableSensor = 1;
+	if(toggle) {
+//		toggle = 0;
+		//turnLeft();
+	}
+	else {
+//		toggle = 1;
+//		turnRight();
+	}
 }

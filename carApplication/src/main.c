@@ -39,11 +39,27 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "ultrasonic.h"
+#include "motorControl.h"
+#include "servoControl.h"
+#include "userButton.h"
 
 int main(void)
 {
+	initServoControl();
+	initUserButton();
+	initMotorControl();
 	initUltrasonic();
-	while (1) {
+	float limit = 100;
+	while (1)
+	{
+		if(enableSensor) {
+			if(DISTANCE < limit) {
+				turnLeft();
+			}
+			else if(DISTANCE > limit) {
+				turnRight();
+			}
+		}
 	}
 }
 

@@ -42,6 +42,12 @@ void resetSpeed() {
 	TIM4->CCR2 = 20000 - 1500 - 1;
 }
 
+//speed is between -100 (full reverse) and 100 (full forward)
+void setSpeed(int speed) {
+	int pw = 1500 + (speed * 5);
+	TIM4->CCR2 = 20000 - pw - 1;
+}
+
 //void TIM4_IRQHandler(void) {
 //	TIM4->SR &= ~(3);
 //	//GPIOA->ODR ^= (1<<6);

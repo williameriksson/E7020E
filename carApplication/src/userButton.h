@@ -8,5 +8,8 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_nucleo.h"
 #include "motorControl.h"
+#include "servoControl.h"
+
+int enableSensor = 0;
 
 void initUserButton(void);

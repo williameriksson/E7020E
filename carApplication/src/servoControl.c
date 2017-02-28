@@ -32,11 +32,11 @@ void turnReset() {
 }
 
 void turnLeft() {
-	int maxLeft = 1800;
+	int maxLeft = 1700;
 	TIM4->CCR1 = 20000 - maxLeft - 1;
 }
 
 void turnRight() {
-	int maxRight = 1200;
+	int maxRight = 1300;
 	TIM4->CCR1 = 20000 - maxRight - 1;
 }
