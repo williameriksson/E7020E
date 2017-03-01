@@ -10,6 +10,6 @@
 #include "motorControl.h"
 #include "servoControl.h"
 
-int enableSensor = 0;
+int enableSensor;
 
 void initUserButton(void);

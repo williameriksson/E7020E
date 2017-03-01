@@ -2,25 +2,25 @@
 
 
 void initServoControl() {
-	//Init for servo control on pin PB6 (tim4 ch1)
+	//Init for servo control on pin PB3 (TIM2 ch2)
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; //ensures clock on GPIOB is enabled
-	GPIOB->MODER |= GPIO_MODER_MODER6_1; //sets GPIOB mode to alternating function
-	GPIOB->AFR[0] |= (GPIO_AF2_TIM4 << 24);
+	GPIOB->MODER |= GPIO_MODER_MODER3_1; //sets GPIOB mode to alternating function
+	GPIOB->AFR[0] |= (GPIO_AF1_TIM2 << 12);
 
 	__disable_irq();
-	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; //enables TIM2 timer
-	TIM4->DIER |= TIM_DIER_UIE; //enables update interrupts
-	TIM4->PSC = 100-1; //sets prescalar -> clock freq 1MHz
-	TIM4->ARR = 20000-1;
-	TIM4->CCR1 = 20000 - 1500 - 1; // CCR1 timer (for servo this determines angle (1200-1800))
-	TIM4->DIER |= TIM_DIER_CC1IE; //sets the CC1IE flag for interrupt
-	TIM4->CCMR1 |= TIM_CCMR1_OC1M_0;
-	TIM4->CCMR1 |= TIM_CCMR1_OC1M_1; //sets CCRM1 to mode 2... 111
-	TIM4->CCMR1 |= TIM_CCMR1_OC1M_2;
-	TIM4->CCMR1 |= TIM_CCMR1_OC1PE; //sets preload registers true, (CCR regs wont be loaded until next update event)
-	TIM4->CCER |= 1; //capture/compare ch1 enabled
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //enables TIM2 timer
+	TIM2->DIER |= TIM_DIER_UIE; //enables update interrupts
+	TIM2->PSC = 10-1; //sets prescalar -> clock freq 1MHz
+	TIM2->ARR = 200000-1;
+	TIM2->CCR2 = 200000 - 15000 - 1; // CCR2 timer (for servo this determines angle (1200-1800))
+	TIM2->DIER |= TIM_DIER_CC2IE; //sets the CC1IE flag for interrupt
+	TIM2->CCMR1 |= TIM_CCMR1_OC2M_0;
+	TIM2->CCMR1 |= TIM_CCMR1_OC2M_1; //sets CCRM1 to mode 2... 111
+	TIM2->CCMR1 |= TIM_CCMR1_OC2M_2;
+	TIM2->CCMR1 |= TIM_CCMR1_OC2PE; //sets preload registers true, (CCR regs wont be loaded until next update event)
+	TIM2->CCER |= TIM_CCER_CC2E; //capture/compare ch2 enabled
 
-	TIM4->CR1 |= TIM_CR1_CEN;
+	TIM2->CR1 |= TIM_CR1_CEN;
 	__enable_irq();
 
 //	NVIC_EnableIRQ(TIM2_IRQn);
@@ -28,15 +28,15 @@ void initServoControl() {
 }
 
 void turnReset() {
-	TIM4->CCR1 = 20000 - 1500 - 1;
+	TIM2->CCR2 = 200000 - 15000 - 1;
 }
 
 void turnLeft() {
-	int maxLeft = 1700;
-	TIM4->CCR1 = 20000 - maxLeft - 1;
+	int maxLeft = 17000;
+	TIM2->CCR2 = 200000 - maxLeft - 1;
 }
 
 void turnRight() {
-	int maxRight = 1300;
-	TIM4->CCR1 = 20000 - maxRight - 1;
+	int maxRight = 13000;
+	TIM2->CCR2 = 200000 - maxRight - 1;
 }

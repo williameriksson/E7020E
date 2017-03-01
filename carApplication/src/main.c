@@ -49,17 +49,10 @@ int main(void)
 	initUserButton();
 	initMotorControl();
 	initUltrasonic();
-	float limit = 100;
+
 	while (1)
 	{
-		if(enableSensor) {
-			if(DISTANCE < limit) {
-				turnLeft();
-			}
-			else if(DISTANCE > limit) {
-				turnRight();
-			}
-		}
+
 	}
 }
 
