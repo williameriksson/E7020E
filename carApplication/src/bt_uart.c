@@ -8,10 +8,10 @@
 #include "bt_uart.h"
 #include "stdlib.h"
 
-#define BAUDRATE 19200
+#define BAUDRATE 9600
 #define USARTBUFFSIZE 16
 volatile FIFO_TypeDef U2Rx, U2Tx;
-//int freq = 0;
+
 //int test = 0;
 //Buffer struct
 //typedef struct{
@@ -27,28 +27,40 @@ volatile FIFO_TypeDef U2Rx, U2Tx;
 void initUART () {
 	BufferInit(&U2Rx);
 	BufferInit(&U2Tx);
-//	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
-//	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
-//	GPIOC->MODER |= GPIO_MODER_MODER7_1 | GPIO_MODER_MODER6_1;
-//	GPIOC->AFR[0] |= (GPIO_AF8_USART6 << 24);
-//	GPIOC->AFR[0] |= (GPIO_AF8_USART6 <<28);
-//	USART6->CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
+	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
+	GPIOC->MODER |= GPIO_MODER_MODER7_1 | GPIO_MODER_MODER6_1;
+	GPIOC->AFR[0] |= (GPIO_AF8_USART6 << 24);
+	GPIOC->AFR[0] |= (GPIO_AF8_USART6 <<28);
+	USART6->CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 //
 //	USART2->BRR |= 100000000L/BAUDRATE;
-	RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // Start the clock for USART2
+	//RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+	//RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // Start the clock for USART2
 	//RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Start the clock for the GPIOA
-	GPIOA->MODER |= GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1 | GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1; // Put AF?
+	//GPIOA->MODER |= GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1 | GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1; // Put AF?
 
-	GPIOA->AFR[0] |= GPIO_AF7_USART2;
-	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 4);
-	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 8);
-	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 12);
-	USART2->CR1 |= USART_CR1_RXNEIE; //Enable UART RXNE Interrupt
-	USART2->CR1 &= ~USART_CR1_TXEIE; //Disable UART TXE Interrupt
-	USART2->CR1 |= USART_CR1_UE; // Enable USART, word length defaults to 8 bits and 1 stop bit
-	USART2->CR1 |= USART_CR1_TE;
-	USART2->CR1 |= USART_CR1_RE;
-	USART2->BRR |= 100000000L/BAUDRATE;
+//	GPIOA->AFR[0] |= GPIO_AF7_USART2;
+//	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 4);
+//	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 8);
+//	GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 12);
+//	USART2->CR1 |= USART_CR1_RXNEIE; //Enable UART RXNE Interrupt
+//	USART2->CR1 &= ~USART_CR1_TXEIE; //Disable UART TXE Interrupt
+//	USART2->CR1 |= USART_CR1_UE; // Enable USART, word length defaults to 8 bits and 1 stop bit
+//	USART2->CR1 |= USART_CR1_TE;
+//	USART2->CR1 |= USART_CR1_RE;
+//	USART2->BRR |= 100000000L/BAUDRATE;
+	USART6->CR1 |= USART_CR1_RXNEIE; //Enable UART RXNE Interrupt
+	USART6->CR1 &= ~USART_CR1_TXEIE; //Disable UART TXE Interrupt
+	USART6->CR1 |= USART_CR1_UE; // Enable USART, word length defaults to 8 bits and 1 stop bit
+	USART6->CR1 |= USART_CR1_TE;
+	USART6->CR1 |= USART_CR1_RE;
+	USART6->BRR |= 50000000L/BAUDRATE;
+	//NVIC_EnableIRQ(USART2_IRQn); // USART2 Interrupt enable
+	//NVIC_SetPriority(USART2_IRQn, 38);
+
+	NVIC_EnableIRQ(USART6_IRQn);
+	NVIC_SetPriority(USART6_IRQn, 71);
 
 	initInterrupt();
 
@@ -67,10 +79,10 @@ void initInterrupt() {
 	__enable_irq(); //Enable global interrupts
 
 	NVIC_EnableIRQ(TIM2_IRQn); // TIM2 Interrupt enable
-	NVIC_SetPriority(TIM2_IRQn, 35);
+	NVIC_SetPriority(TIM2_IRQn, 40);
 
-	NVIC_EnableIRQ(USART2_IRQn); // USART2 Interrupt enable
-	NVIC_SetPriority(USART2_IRQn, 38);
+	//NVIC_EnableIRQ(USART2_IRQn); // USART2 Interrupt enable
+	//NVIC_SetPriority(USART2_IRQn, 38);
 
 }
 //Interrupt handler for toggling LED
@@ -90,17 +102,20 @@ void TIM2_IRQHandler (void) {
 //}
 
 //New USART2 Interrupt handler with buffer
-void USART2_IRQHandler (void) {
+void USART6_IRQHandler (void) {
 	uint8_t ch;
-	if (USART2->SR & USART_SR_RXNE){
-		ch=(uint8_t)USART2->DR;
+	if (USART6->SR & USART_SR_RXNE){
+		ch=(uint8_t)USART6->DR;
 		BufferPut(&U2Rx, ch);
 	}
 
 }
-void blinkLED(int freq) {
+void blinkLED() {
+	uint8_t temp = Usart2Get();
+	char freq = temp;
+	int blinkFreq = freq;
 	__disable_irq();
-	TIM2->ARR = freq * 1000-1;
+	TIM2->ARR = blinkFreq * 1000-1;
 	TIM2->CNT = 0;
 	__enable_irq();
 

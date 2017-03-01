@@ -26,7 +26,7 @@ typedef struct{
 
 void initUART();
 
-void blinkLED(int);
+void blinkLED();
 //ErrorStatus BufferGet(FIFO_TypeDef, uint8_t);
 //void BufferInit(FIFO_TypeDef);
 //ErrorStatus BufferIsEmpty(FIFO_TypeDef);
@@ -37,7 +37,7 @@ void initInterrupt();
 //int pollUART();
 
 
-
+uint8_t Usart2Get(void);
 void BufferInit(__IO FIFO_TypeDef *buffer);
 ErrorStatus BufferPut(__IO FIFO_TypeDef *buffer, uint8_t ch);
 ErrorStatus BufferGet(__IO FIFO_TypeDef *buffer, uint8_t *ch);
