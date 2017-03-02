@@ -1,9 +1,5 @@
-/*
- * userButton.h
- *
- *  Created on: 24 Feb 2017
- *      Author: sebas
- */
+#ifndef USERBUTTON_H_
+#define USERBUTTON_H_
 
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_nucleo.h"
@@ -13,3 +9,5 @@
 int enableSensor;
 
 void initUserButton(void);
+
+#endif /* USERBUTTON_H_ */

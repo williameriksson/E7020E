@@ -8,7 +8,7 @@ int speed = 0;
 
 void initHallSensor() {
 	__disable_irq();
-	initBuffer(&hallBuffer, 0, 4);
+	circularBufferInit(&hallBuffer, 0, 4);
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB, if we need to read it, but prolly not
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
