@@ -1,4 +1,4 @@
-#include "circularBuffer.h";
+#include "circularBuffer.h"
 
 
 void circularBufferInit(CircularBUFFER* buff, int i, int s) {
