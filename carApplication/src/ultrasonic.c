@@ -23,9 +23,9 @@ void EXTI0_IRQHandler (void) {
 		} else {
 			int duration = TIM3->CNT;
 			int actualSensorValue = duration * 0.0340 / 2.0;
-			bufferAdd(&distanceBuffer, actualSensorValue);
+			pushBuffer(&distanceBuffer, actualSensorValue);
 			//first 2 values of getAverage may be sheit!
-			DISTANCE = getAverage(&distanceBuffer);
+			DISTANCE = getBufferAverage(&distanceBuffer);
 			float limit = 100;
 			if(1) {
 				if(DISTANCE <= limit) {
@@ -87,7 +87,7 @@ void initUltrasonic (void) {
 	NVIC_SetPriority(EXTI0_IRQn, 15); // Set the priority, this should probably be changed..
 	NVIC_EnableIRQ(EXTI0_IRQn); // Enable the interrupt
 
-	circularBufferInit(&distanceBuffer);
+	circularBufferInit(&distanceBuffer, 0, 3);
 	//NVIC_EnableIRQ(TIM4_IRQn); //Enable TIM4 interrupt handler
 	//NVIC_SetPriority(TIM4_IRQn, 35); //Set interrupt priority
 
