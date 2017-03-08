@@ -1,10 +1,10 @@
 #include "hallSensor.h"
 
 // Converts time diff (uS) between 2 magnets of the 4 magnet setup to meters per second
-#define usToMpsFourM(t) ((2.0 * 3.141592 * 0.05) / 4) * 1000000 / t
+#define usToMpsFourM(t) ((2.0 * 3.141592 * 0.04) / 4) * 1000 / t
 
 CircularBUFFER hallBuffer;
-int speed = 0;
+float speed = 0;
 
 void initHallSensor() {
 	__disable_irq();
@@ -17,7 +17,7 @@ void initHallSensor() {
 	EXTI->IMR |= EXTI_IMR_MR2; // Unmask the interrupt register for MR2 (Active for PB2)
 
 	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
-	TIM5->PSC = 100-1; // Prescale to 1Mhz
+	TIM5->PSC = 100000-1; // Prescale to 1000 Hz
 	TIM5->ARR = 0xFFFF; // Auto reload at max
 	TIM5->CR1 |= TIM_CR1_CEN; // Enable TIM5
 

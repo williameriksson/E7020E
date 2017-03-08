@@ -16,7 +16,7 @@ void pushBuffer (CircularBUFFER *buff, int value) {
 	buff->buffer[buff->indexPointer] = value;
 }
 
-int getBufferAverage(CircularBUFFER *buff) {
+float getBufferAverage(CircularBUFFER *buff) {
 	int tmp = 0;
 	// What happens before the array has wrapped around?
 	// Does the compiler guarantee the unassigned positions of the array
@@ -24,7 +24,7 @@ int getBufferAverage(CircularBUFFER *buff) {
 	for (int i = 0; i < buff->size; i++) {
 		tmp += buff->buffer[i];
 	}
-	return tmp / buff->size;
+	return (float)(tmp / buff->size);
 }
 
 

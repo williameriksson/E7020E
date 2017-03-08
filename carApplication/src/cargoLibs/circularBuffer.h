@@ -24,6 +24,6 @@ typedef struct{
 */
 void circularBufferInit(CircularBUFFER*, int, int);
 void pushBuffer(CircularBUFFER*, int);
-int getBufferAverage(CircularBUFFER*);
+float getBufferAverage(CircularBUFFER*);
 
 #endif /*CIRCULARBUFFER*/

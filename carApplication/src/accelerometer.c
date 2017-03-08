@@ -34,6 +34,9 @@ void initAccelerometer() {
 
 }
 
+// CTRL_REG1(20h) write value: 0x57 HR / normal / Low power mode (100 Hz)
+
+
 void SPI1_IRQHandler(void)
 {
     unsigned char rx;
