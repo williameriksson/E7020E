@@ -1,4 +1,4 @@
-#include "circularBuffer.h";
+#include "circularBuffer.h"
 
 
 void circularBufferInit(CircularBUFFER* buff, int i, int s) {
@@ -37,7 +37,7 @@ int getBufferAverage(CircularBUFFER *buff) {
 	for (int i = 0; i < buff->size; i++) {
 		tmp += buff->buffer[i];
 	}
-	return tmp / buff->size;
+	return (tmp / buff->size);
 }
 
 
