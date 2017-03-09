@@ -5,7 +5,7 @@
 #include "stm32f4xx_nucleo.h"
 #include "cargoLibs/circularBuffer.h"
 
-float DISTANCE;
+uint32_t DISTANCE;
 CircularBUFFER distanceBuffer;
 
 void initUltrasonic(void);

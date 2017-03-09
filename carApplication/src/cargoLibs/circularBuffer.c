@@ -16,6 +16,19 @@ void pushBuffer (CircularBUFFER *buff, int value) {
 	buff->buffer[buff->indexPointer] = value;
 }
 
+int pullBuffer(CircularBUFFER *buff, int offset) {
+	int pullPosition = (int)buff->indexPointer;
+	pullPosition += offset;
+	int arraySize = buff->size;
+	if(pullPosition >= arraySize) {
+		pullPosition = pullPosition - arraySize;
+	}
+	else if(pullPosition < 0) {
+		pullPosition = pullPosition + arraySize;
+	}
+	return buff->buffer[pullPosition];
+}
+
 int getBufferAverage(CircularBUFFER *buff) {
 	int tmp = 0;
 	// What happens before the array has wrapped around?

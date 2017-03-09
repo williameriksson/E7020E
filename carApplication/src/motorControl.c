@@ -5,6 +5,9 @@
 //int motorARR = (baseClock * 20) - 1;
 //int motorCRR = motorARR - 1500;
 
+const int minPW = 1200;
+const int maxPW = 1800;
+
 void initMotorControl() {
 	//Init for motor control on pin PB10 (TIM2 ch3)
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; //ensures clock on GPIOA is enabled
@@ -31,14 +34,16 @@ void initMotorControl() {
 //	NVIC_SetPriority(TIM2_IRQn, 35);
 }
 
-void accelerate() {
+//increases or decreases the speed (pos or neg amount)
+void accelerate(int amount) {
 	int pw = TIM2->ARR - TIM2->CCR3;
-	pw = pw + 200;
-	TIM2->CCR3 = 200000 - pw - 1;
-}
-void decelerate() {
-	int pw = TIM2->ARR - TIM2->CCR3;
-	pw = pw - 200;
+	pw = pw + (amount/100);
+	if(pw < minPW) {
+		pw = minPW;
+	}
+	else if(pw > maxPW) {
+		pw = maxPW;
+	}
 	TIM2->CCR3 = 200000 - pw - 1;
 }
 
@@ -46,10 +51,15 @@ void resetSpeed() {
 	TIM2->CCR3 = 200000 - 15000 - 1;
 }
 
-//speed is between -100 (full reverse) and 100 (full forward)
-void setSpeed(int speed) {
-	int pw = 15000 + (speed * 50);
-	TIM2->CCR3 = 200000 - pw - 1;
+void setSpeed(int reference) {
+	int currentspeed = 0; //get from Hall-sensor
+	int prop = 1;
+	int velocityError = prop * (reference - currentspeed);
+	accelerate(velocityError);
+
+
+//	int pw = 15000 + (reference * 50);
+//	TIM2->CCR3 = 200000 - pw - 1;
 }
 
 //void TIM2_IRQHandler(void) {

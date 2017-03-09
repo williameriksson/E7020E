@@ -2,8 +2,9 @@
 #include "ultrasonic.h"
 #include "motorControl.h"
 #include "userButton.h"
+#include "cargoLibs/filterUtils.h"
+#include "cargoLibs/circularBuffer.h"
 
-float DISTANCE;
 
 /*
 void TIM4_IRQHandler (void){
@@ -14,27 +15,38 @@ void TIM4_IRQHandler (void){
 		//triggerSonar();
 	}
 } */
+int BUFFDISTANCE;
 
 void EXTI0_IRQHandler (void) {
-
+	static int count = 0;
+	count++;
 	if (EXTI->PR & EXTI_PR_PR0) {	// Check interrupt flag for PR0
 		if (GPIOB->IDR & 1) {		// Check if rising edge
 			TIM3->CNT = 0;			// Reset the timer
 		} else {
 			int duration = TIM3->CNT;
 			int actualSensorValue = duration * 0.0340 / 2.0;
+//			__disable_irq();
 			pushBuffer(&distanceBuffer, actualSensorValue);
 			//first 2 values of getAverage may be sheit!
-			DISTANCE = getBufferAverage(&distanceBuffer);
-			float limit = 100;
+			if(count > 5) {
+				DISTANCE = filterNoise(DISTANCE, &distanceBuffer, 300);
+				BUFFDISTANCE = pullBuffer(&distanceBuffer, 0);
+				//DISTANCE = actualSensorValue;
+			}
+			else {
+				DISTANCE = actualSensorValue;
+			}
+			int limit = 100;
 			if(1) {
 				if(DISTANCE <= limit) {
 					setSpeed(0);
 				}
 				else if(DISTANCE > limit) {
-					setSpeed(-14);
+					setSpeed(0);
 				}
 			}
+//			__enable_irq();
 		}
 		/*if (times >= 3) {
 			DISTANCE = tempDist / (float)times;
@@ -47,7 +59,8 @@ void EXTI0_IRQHandler (void) {
 
 }
 
-//running on PB6 (TIM4 ch 1)
+//trigger running on PB6 (TIM4 ch 1)
+//
 void initUltrasonic (void) {
 	__disable_irq(); //Disable global interrupts while setting TIM4 up
 //	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; //Enable clock for TIM4
@@ -87,7 +100,7 @@ void initUltrasonic (void) {
 	NVIC_SetPriority(EXTI0_IRQn, 15); // Set the priority, this should probably be changed..
 	NVIC_EnableIRQ(EXTI0_IRQn); // Enable the interrupt
 
-	circularBufferInit(&distanceBuffer, 0, 3);
+	circularBufferInit(&distanceBuffer, 0, 5);
 	//NVIC_EnableIRQ(TIM4_IRQn); //Enable TIM4 interrupt handler
 	//NVIC_SetPriority(TIM4_IRQn, 35); //Set interrupt priority
 
