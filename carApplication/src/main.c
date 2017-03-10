@@ -15,6 +15,7 @@ int main(void)
 	initUltrasonic();
 //	initHallSensor();
  	initADC();
+ 	initUART();
 
 	while (1)
 	{

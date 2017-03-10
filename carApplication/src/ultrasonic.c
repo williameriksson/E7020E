@@ -29,7 +29,7 @@ void EXTI0_IRQHandler (void) {
 			pushBuffer(&distanceBuffer, actualSensorValue);
 			//first 2 values of getAverage may be sheit!
 			if(count > 5) {
-				DISTANCE = filterNoise(DISTANCE, &distanceBuffer, 300);
+				DISTANCE = filterNoise(DISTANCE, &distanceBuffer, 500);
 				BUFFDISTANCE = pullBuffer(&distanceBuffer, 0);
 				//DISTANCE = actualSensorValue;
 			}

@@ -80,9 +80,9 @@ void USART6_IRQHandler (void) {
 		//if (BufferGet(&U2Tx , &ch) == SUCCESS) {
 		//USART6->DR = ch;
 
-		}
+	}
 		//else {
-		//USART6->CR1 &= ~USART_CR1_TXEIE;
+	USART6->CR1 &= ~USART_CR1_TXEIE;
 		//}
 
 
