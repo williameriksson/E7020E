@@ -114,10 +114,23 @@ void initUltrasonic (void) {
 	TIM3->CR1 |= TIM_CR1_CEN; // Enable TIM3
 
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
+
 	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PB; // Set external interrupt EXTI0 for PB0
+
 	EXTI->RTSR |= EXTI_RTSR_TR0; // Enable interrupt on rising edge for TR0
 	EXTI->FTSR |= EXTI_FTSR_TR0; // Enable interrupt on falling edge for TR0
 	EXTI->IMR |= EXTI_IMR_MR0; // Unmask the interrupt register for MR0 (Active for PB0)
+
+	EXTI->RTSR |= EXTI_RTSR_TR1; // Enable interrupt on rising edge for TR1
+	EXTI->FTSR |= EXTI_FTSR_TR1; // Enable interrupt on falling edge for TR1
+	EXTI->IMR |= EXTI_IMR_MR1; // Unmask the interrupt register for MR0 (Active for PB1)
+
+	EXTI->RTSR |= EXTI_RTSR_TR2; // Enable interrupt on rising edge for TR2
+	EXTI->FTSR |= EXTI_FTSR_TR2; // Enable interrupt on falling edge for TR2
+	EXTI->IMR |= EXTI_IMR_MR2; // Unmask the interrupt register for MR2 (Active for PB2)
+
+
+
 	__enable_irq(); //Enable global interrupts
 
 	NVIC_SetPriority(EXTI0_IRQn, 15); // Set the priority, this should probably be changed..
