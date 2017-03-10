@@ -11,7 +11,9 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_nucleo.h"
+#include "stdbool.h"
 #define USARTBUFFSIZE 16
+//bool run = true;
 
 typedef struct{
 	uint8_t in;
@@ -25,7 +27,8 @@ typedef struct{
 
 
 void initUART();
-
+//void takeAction();
+void echoUART();
 void blinkLED();
 //ErrorStatus BufferGet(FIFO_TypeDef, uint8_t);
 //void BufferInit(FIFO_TypeDef);
@@ -35,7 +38,7 @@ void initInterrupt();
 //volatile FIFO_TypeDef;
 //uint8_t Usart2Get();
 //int pollUART();
-
+void Usart2Put(uint8_t);
 
 uint8_t Usart2Get(void);
 void BufferInit(__IO FIFO_TypeDef *buffer);

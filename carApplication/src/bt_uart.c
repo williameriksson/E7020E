@@ -7,10 +7,13 @@
 
 #include "bt_uart.h"
 #include "stdlib.h"
+//#include "stdbool.h"
 
 #define BAUDRATE 9600
 #define USARTBUFFSIZE 16
 volatile FIFO_TypeDef U2Rx, U2Tx;
+
+
 
 //int test = 0;
 //Buffer struct
@@ -42,6 +45,22 @@ void initUART () {
 
 	NVIC_EnableIRQ(USART6_IRQn);
 	NVIC_SetPriority(USART6_IRQn, 71);
+	//Usart2Put(8);
+}
+
+//void takeAction(uint8_t input){
+//	uint8_t input = BufferGet(&U2Rx , &ch);
+//	if (input == 0) {
+//		run = false;
+//	}
+//	if (input == 1){
+//		run = true;
+//	}
+//}
+
+void echoUART() {
+	uint8_t ch = BufferGet(&U2Rx, &ch);
+	Usart2Put(ch);
 }
 
 //New USART6 Interrupt handler with buffer
@@ -49,17 +68,23 @@ void USART6_IRQHandler (void) {
 	uint8_t ch;
 	if (USART6->SR & USART_SR_RXNE){
 		ch=(uint8_t)USART6->DR;
-		BufferPut(&U2Rx, ch);
+		//BufferPut(&U2Rx, ch);
+		//echoUART();
+		USART6->DR = ch;
+		USART6->CR1 |= USART_CR1_TXEIE;
+		//USART6->DR = ch;
+
 	}
 	if (USART6->SR & USART_SR_TXE) {
-		if (BufferGet(&U2Tx , &ch) == SUCCESS) {
-			USART6->DR |= ch;
+		//USART->DR = ch;
+		//if (BufferGet(&U2Tx , &ch) == SUCCESS) {
+		//USART6->DR = ch;
 
 		}
-		else {
-			USART6->CR1 &= ~USART_CR1_TXEIE;
-		}
-	}
+		//else {
+		//USART6->CR1 &= ~USART_CR1_TXEIE;
+		//}
+
 
 }
 
