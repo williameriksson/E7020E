@@ -7,8 +7,8 @@
 void initMotorControl(void);
 
 void resetSpeed(void);
-void setSpeed(int speed);
-void accelerate(void);
+void setSpeed(int);
+void accelerate(int);
 void decelerate(void);
 
 
