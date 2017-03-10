@@ -1,4 +1,5 @@
 #include "userButton.h"
+#include "analog.h"
 
 void initUserButton() {
 	enableSensor = 0;
@@ -18,6 +19,7 @@ void initUserButton() {
 int toggle = 0;
 void EXTI15_10_IRQHandler(void) {
 	EXTI->PR |= EXTI_PR_PR13;
+	singleADC();
 //	enableSensor = 1;
 //	if(toggle) {
 //		toggle = 0;

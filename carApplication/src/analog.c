@@ -4,7 +4,8 @@
 
 
 
-uint16_t ADCval;
+float ADCval;
+
 
 void initADC(void)
 {
@@ -15,17 +16,26 @@ void initADC(void)
 	ADC1->SMPR1 |= ADC_SMPR1_SMP14;			//Sets sample rate for channel 14 to (111 = 480 cycles)
 	ADC1->CR1 |= ADC_CR1_EOCIE;			//Enables interrupts for EOC
 	ADC1->CR2 |= ADC_CR2_ADON;  		//sets ADON bit (turns on ADC)
-	ADC1->CR2 |= ADC_CR2_SWSTART;		//Enables measuring on regular channels
-	ADC1->CR2 |= ADC_CR2_CONT;			//Enables continuous mode
+	ADC1->SQR3 |= 14;
 
 	NVIC_EnableIRQ(ADC_IRQn);			//Enables interrupt handler
 	NVIC_SetPriority(ADC_IRQn, 18);
 }
 
+void singleADC(void){
+	ADC1->CR2 |= ADC_CR2_SWSTART;		//Starts conversion
+	//ADC1->CR2 &= !ADC_CR2_CONT;			//Ensures single conversion mode, sets CONT bit to 0
+
+}
+
+
+
 void ADC_IRQHandler (void) {
 	if(ADC1->SR & ADC_SR_EOC) {
 		ADCval = ADC1->DR;		//Reads data from register to variable
+		ADCval = ADCval/1241.0;
 
+		ADC1->SR &= ~ADC_SR_EOC;
 	}
-	//ADC1->SR &= ~ADC_SR_EOC;
+
 }
