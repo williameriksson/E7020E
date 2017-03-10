@@ -10,9 +10,9 @@
 int main(void)
 {
 //	initServoControl();
-//	initUserButton();
+	initUserButton();
 //	initMotorControl();
-//	initUltrasonic();
+	initUltrasonic();
 //	initHallSensor();
  	initADC();
 
