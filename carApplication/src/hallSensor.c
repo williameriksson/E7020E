@@ -12,9 +12,9 @@ void initHallSensor() {
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB, if we need to read it, but prolly not
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
-	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI2_PB; // Set external interrupt EXTI2 for PB2
-	EXTI->FTSR |= EXTI_FTSR_TR2; // Enable interrupt on falling edge for TR2
-	EXTI->IMR |= EXTI_IMR_MR2; // Unmask the interrupt register for MR2 (Active for PB2)
+	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB; // Set external interrupt EXTI2 for PB4
+	EXTI->FTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
+	EXTI->IMR |= EXTI_IMR_MR4; // Unmask the interrupt register for MR2 (Active for PB4)
 
 	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
 	TIM5->PSC = 100000-1; // Prescale to 1000 Hz
@@ -23,8 +23,8 @@ void initHallSensor() {
 
 	__enable_irq(); //Enable global interrupts
 
-	NVIC_SetPriority(EXTI2_IRQn, 15); // Set the priority, this should probably be changed..
-	NVIC_EnableIRQ(EXTI2_IRQn); // Enable the interrupt
+	NVIC_SetPriority(EXTI4_IRQn, 15); // Set the priority, this should probably be changed..
+	NVIC_EnableIRQ(EXTI4_IRQn); // Enable the interrupt
 
 }
 
@@ -40,13 +40,13 @@ void regulator() {
 }*/
 
 
-void EXTI2_IRQHandler () {
+void EXTI4_IRQHandler () {
 	static int startTime = 0;
-	if (EXTI->PR & EXTI_PR_PR2) {	// Check interrupt flag
+	if (EXTI->PR & EXTI_PR_PR4) {	// Check interrupt flag
 		int endTime = TIM5->CNT;
 		int diff = getTimeDiff16b(startTime, endTime);
 		pushBuffer(&hallBuffer, diff);
 		speed = usToMpsFourM(getBufferAverage(&hallBuffer));
 	}
-	EXTI->PR |= EXTI_PR_PR2; 		// Clear interrupt flag
+	EXTI->PR |= EXTI_PR_PR4; 		// Clear interrupt flag
 }
