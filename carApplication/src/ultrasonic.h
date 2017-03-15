@@ -5,8 +5,16 @@
 #include "stm32f4xx_nucleo.h"
 #include "cargoLibs/circularBuffer.h"
 
-uint32_t DISTANCE;
-CircularBUFFER distanceBuffer;
+typedef struct {
+	int frontLeft;
+	int frontMiddle;
+	int frontRight;
+} DistanceStruct;
+
+DistanceStruct distance;
+CircularBUFFER distanceBufferLeft;
+CircularBUFFER distanceBufferMiddle;
+CircularBUFFER distanceBufferRight;
 
 void initUltrasonic(void);
 

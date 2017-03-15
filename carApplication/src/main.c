@@ -10,12 +10,13 @@
 int main(void)
 {
 //	initServoControl();
-	initUserButton();
+//	initUserButton();
 //	initMotorControl();
-	initUltrasonic();
-//	initHallSensor();
- 	initADC();
- 	initUART();
+//	initUltrasonic();
+	initHallSensor();
+	initMotorControl();
+// 	initADC();
+// 	initUART();
 
 	while (1)
 	{
