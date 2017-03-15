@@ -20,8 +20,8 @@ void initHallSensor() {
 	//RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
 
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	TIM10->ARR = 0xFFFF; // Auto reload at max
-	TIM10->PSC = 0xFFFF; // Prescale to 10kHz
+	TIM10->ARR = 20000; // Auto reload at max
+	TIM10->PSC = 10000 - 1; // Prescale to 10kHz
 	TIM10->DIER |= TIM_DIER_UIE;
 	TIM10->CR1 |= TIM_CR1_CEN; // Enable TIM5
 
@@ -52,16 +52,23 @@ void regulator() {
 
 
 void TIM1_UP_TIM10_IRQHandler () {
+	if (TIM10->SR & 1) {
+		speed = 0;
+	}
+	TIM10->SR &= ~(1);
 
 }
 
 void EXTI4_IRQHandler () {
 	if (EXTI->PR & EXTI_PR_PR4) {	// Check interrupt flag
-		uint32_t diff = TIM5->CNT;
-		TIM5->CNT = 0;
+		uint16_t diff = TIM10->CNT;
+		TIM10->CNT = 0;
 		pushBuffer(&hallBuffer, diff);
 		diff = getBufferAverage(&hallBuffer);
-		speed = (60.0f * 10000.0f) / (2.0f * (float)diff);
+		if (diff != 0) {
+			speed = (60.0f * 10000.0f) / (2.0f * (float)diff);
+		}
+
 
 	}
 	EXTI->PR |= EXTI_PR_PR4; 		// Clear interrupt flag
