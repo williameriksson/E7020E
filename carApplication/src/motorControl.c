@@ -5,8 +5,8 @@
 //int motorARR = (baseClock * 20) - 1;
 //int motorCRR = motorARR - 1500;
 
-const int minPW = 1200;
-const int maxPW = 1800;
+const int minPW = 12000;
+const int maxPW = 18000;
 
 void initMotorControl() {
 	//Init for motor control on pin PB10 (TIM2 ch3)
@@ -37,7 +37,7 @@ void initMotorControl() {
 //increases or decreases the speed (pos or neg amount)
 void accelerate(float amount) {
 	float pw = TIM2->ARR - TIM2->CCR3;
-	pw = pw + amount;
+	pw = pw - amount/5;
 	if(pw < minPW) {
 		pw = minPW;
 	}

@@ -5,11 +5,13 @@
 #define usToMpsFourM(t) 100000000.0 / ((float)t * 4.0)
 
 CircularBUFFER hallBuffer;
-float speed = 0;
+
 
 void initHallSensor() {
 	__disable_irq();
 	circularBufferInit(&hallBuffer, 0, 4);
+
+	speed = 0;
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB, if we need to read it, but prolly not
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
@@ -20,7 +22,7 @@ void initHallSensor() {
 	//RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
 
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	TIM10->ARR = 20000; // Auto reload at max
+	TIM10->ARR = 10000; // Auto reload at max
 	TIM10->PSC = 10000 - 1; // Prescale to 10kHz
 	TIM10->DIER |= TIM_DIER_UIE;
 	TIM10->CR1 |= TIM_CR1_CEN; // Enable TIM5

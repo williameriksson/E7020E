@@ -17,6 +17,7 @@ int main(void)
 	initMotorControl();
 // 	initADC();
 // 	initUART();
+	initController();
 
 	while (1)
 	{

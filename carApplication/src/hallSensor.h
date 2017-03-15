@@ -8,4 +8,6 @@
 
 void initHallSensor(void);
 
+float speed;
+
 #endif /* HALLSENSOR_H_ */

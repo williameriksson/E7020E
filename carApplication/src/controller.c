@@ -1,10 +1,12 @@
 #include "controller.h"
+#include "hallSensor.h"
+#include "motorControl.h"
 
 float looptime = 0.1; //looptime interval in seconds
 
 void initController() {
 	//Init for controller on TIM9
-	testInput = 0;
+	referenceSpeed = 50.0f;
 	__disable_irq();
 	//for testing
 //	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //Enable GPIOA
@@ -22,11 +24,12 @@ void initController() {
 }
 //PID parameters (requires tuning)
 float Kp = 1;
-float Kd = 1;
-float Ki = 1;
+float Kd = 0.2;
+float Ki = 0.5;
 
 float prevErr = 0;
 float prevIntegral = 0;
+
 
 //Feedback PID controller.
 void controlLoop(float desiredSpeed, float currentSpeed) {
@@ -34,16 +37,21 @@ void controlLoop(float desiredSpeed, float currentSpeed) {
 	float derivative = err - prevErr;
 	float integral = prevIntegral + err;
 	float output = Kp * err + (Ki * integral * looptime) + (Kd * derivative /looptime);
+	float currentpw = TIM2->ARR - TIM2->CCR3;
 
 	prevErr = err;
 	prevIntegral = integral;
-	//TODO: figure out a way to translate speed (from hallsensor) into the PWM signal.
+
+
+//	if(currentpw <= 15000) {
+//		output = -output;
+//	}
+	accelerate(output);
 }
 
 void TIM1_BRK_TIM9_IRQHandler (void) {
 	//get hallsensor value
-	float velocity = 1;
-	controlLoop(0, testInput);
+	controlLoop(referenceSpeed, speed);
 	TIM9->SR &= ~(1); //reset the int handler
 	GPIOA->ODR ^= (1<<5);
 }
