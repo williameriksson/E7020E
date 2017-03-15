@@ -28,6 +28,7 @@ void varianceFilter32b(uint32_t *start, uint32_t *end, float tolerance) {
 
 float filterNoise(float previous, CircularBUFFER *buff, int tolerance) {
 	int values[5];
+	int count = 0;
 
 	for(int i = 0; i < buff->size; i++) {
 		values[i] = pullBuffer(buff, 0-i);
@@ -39,11 +40,19 @@ float filterNoise(float previous, CircularBUFFER *buff, int tolerance) {
 			sum += values[i];
 		}
 		else {
-			sum += previous; //filtered away unrealistic spike
+			count++;
+			if(count > 2) {
+				//more than 2 of 5 values out of scope ("spike" seems unlikely).
+				sum += values[i];
+			}
+			else {
+				sum += previous; //filtered away unrealistic spike
+			}
 		}
 	}
+	//below smoothes out changes (dampens change)
 	int average = sum/bufferSize;
-	int maxDev = 50;
+	int maxDev = 50; //TODO: parameterize this.
 	if(previous+maxDev < average) {
 		average = previous+maxDev;
 	}

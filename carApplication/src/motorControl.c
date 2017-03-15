@@ -35,9 +35,9 @@ void initMotorControl() {
 }
 
 //increases or decreases the speed (pos or neg amount)
-void accelerate(int amount) {
-	int pw = TIM2->ARR - TIM2->CCR3;
-	pw = pw + (amount/100);
+void accelerate(float amount) {
+	float pw = TIM2->ARR - TIM2->CCR3;
+	pw = pw + amount;
 	if(pw < minPW) {
 		pw = minPW;
 	}
@@ -56,8 +56,6 @@ void setSpeed(int reference) {
 	int prop = 1;
 	int velocityError = prop * (reference - currentspeed);
 	accelerate(velocityError);
-
-
 //	int pw = 15000 + (reference * 50);
 //	TIM2->CCR3 = 200000 - pw - 1;
 }
