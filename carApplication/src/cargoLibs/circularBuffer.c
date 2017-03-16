@@ -16,6 +16,22 @@ void pushBuffer (CircularBUFFER *buff, int value) {
 	buff->buffer[buff->indexPointer] = value;
 }
 
+int majorityBuffer (CircularBUFFER *buff) {
+	int countZero = 0;
+	int countOne = 0;
+	for(int i = 0; i < buff->size; i++) {
+		if(buff->buffer[i] == 0) {
+			countZero++;
+		}
+		else if(buff->buffer[i] == 1) {
+			countOne++;
+		}
+	}
+	if(countZero > countOne) { return 0; }
+	else if(countZero < countOne) { return 1; }
+	else { return buff->buffer[buff->indexPointer]; }
+}
+
 int pullBuffer(CircularBUFFER *buff, int offset) {
 	int pullPosition = (int)buff->indexPointer;
 	pullPosition += offset;
