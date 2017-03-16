@@ -35,41 +35,47 @@ void initHallSensor() {
 
 	speed = 0;
 	direction = 1;
-	pushBuffer(&directionBuffer, 1);
-	pushBuffer(&directionBuffer, 1);
-	pushBuffer(&directionBuffer, 1);
+	fillBuffer(&directionBuffer, 1);
 
-	hallArray[0] = 0.0f;
-	hallArray[1] = 0.0f;
-	hallArray[2] = 0.0f;
-	hallArray[3] = 0.0f;
-
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB, if we need to read it, but prolly not
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
-	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB; // Set external interrupt EXTI4 for PB4
-	EXTI->FTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
-	EXTI->RTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
-	EXTI->IMR |= EXTI_IMR_MR4; // Unmask the interrupt register for MR4 (Active for PB4)
+
+	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
+	TIM5->ARR = 0xFFFFFFFF; // Auto reload at max
+	TIM5->PSC = 10000 - 1; // Prescale to 10kHz
+	//TIM5->DIER |= TIM_DIER_UIE;
+	TIM5->CR1 |= TIM_CR1_CEN; // Enable TIM5
+
+	RCC->APB1ENR |= RCC_APB2ENR_TIM11EN; // Enable clock for TIM11
+	TIM11->ARR = 0xFFFF; // Auto reload
+	TIM11-> PSC = 10000 - 1; // Prescaler
+	TIM11->CCMR1 |= TIM_CCMR1_CC1S_0; // Configure channel CC1 as input, IC1 is mapped on TI1
+	// CCMR1 offers different filering settings in the IC1F field, might wanna look that up.
+	TIM11->CCER |= TIM_CCER_CC1P; // Capture on falling edge
+	TIM11->CCER |= TIM_CCER_CC1E; // Enable capture
+	TIM11->CR1 |= TIM_CR1_CEN; // Enable TIM11
+	// Read captured value from TIM11->CCR1
+
+	GPIOB->MODER |= GPIO_MODER_MODER8_1; // Set PB8 to AF mode
+	GPIOB->AFR[1] |= GPIO_AF3_TIM11; // Select TIM11 CH1 as AF for PB8
+
+
+//	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB; // Set external interrupt EXTI4 for PB4
+//	EXTI->FTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
+//	EXTI->RTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
+//	EXTI->IMR |= EXTI_IMR_MR4; // Unmask the interrupt register for MR4 (Active for PB4)
 
 	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI5_PB; // Set external interrupt EXTI4 for PB5
 	EXTI->RTSR |= EXTI_RTSR_TR5; // Enable interrupt on rising edge for TR5
 	EXTI->FTSR |= EXTI_FTSR_TR5; // Enable interrupt on falling edge for TR5
 	EXTI->IMR |= EXTI_IMR_MR5; // Unmask the interrupt register for MR5 (Active for PB5)
 
-	//RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
 
-	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	TIM10->ARR = 1000; // Auto reload
-	TIM10->PSC = 10000 - 1; // Prescale to 10kHz
-	//TIM10->DIER |= TIM_DIER_UIE;
-	TIM10->CR1 |= TIM_CR1_CEN; // Enable TIM5
-
-	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
-	TIM5->ARR = 0xFFFFFFFF; // Auto reload at max
-	TIM5->PSC = 10000 - 1; // Prescale to 10kHz
-	//TIM5->DIER |= TIM_DIER_UIE;
-	TIM5->CR1 |= TIM_CR1_CEN; // Enable TIM5
-
+//	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
+//	TIM10->ARR = 1000; // Auto reload
+//	TIM10->PSC = 10000 - 1; // Prescale to 10kHz
+//	//TIM10->DIER |= TIM_DIER_UIE;
+//	TIM10->CR1 |= TIM_CR1_CEN; // Enable TIM5
 
 
 	__enable_irq(); //Enable global interrupts
@@ -78,63 +84,30 @@ void initHallSensor() {
 	//NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 15); // Set the priority, this should probably be changed..
 	//NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn ); // Enable the interrupt
 
+//
+//	NVIC_SetPriority(EXTI4_IRQn, 15); // Set the priority, this should probably be changed..
+//	NVIC_EnableIRQ(EXTI4_IRQn); // Enable the interrupt
 
-	NVIC_SetPriority(EXTI4_IRQn, 15); // Set the priority, this should probably be changed..
-	NVIC_EnableIRQ(EXTI4_IRQn); // Enable the interrupt
-
+	NVIC_SetPriority(TIM1_TRG_COM_TIM11_IRQn, 15);
+	NVIC_EnableIRQ(TIM1_TRG_COM_TIM11_IRQn);
 
 	NVIC_SetPriority(EXTI9_5_IRQn, 15); // Set the priority, this should probably be changed..
 	NVIC_EnableIRQ(EXTI9_5_IRQn); // Enable the interrupt
 
 }
 
-/*
-// Skissfunktion
-void regulator() {
-	// Trigger each 60ms maybe?
-	int theReg;
-	float currentValue;
-	float setPoint = 0.25; // m/s
-	float p = 1;
-	theReg = currentvalue + p * (setPoint - speed);
-}*/
 
-
-//void TIM1_UP_TIM10_IRQHandler () {
-//	if (TIM10->SR & 1) {
-//		speed = 0.0;
-////		pushBuffer(&hallBuffer, 0);
-//		pushArray(0.0);
-//	}
-//	TIM10->SR &= ~(1);
-//
-//}
-
-void EXTI4_IRQHandler () {
-	static int startTime = 0;
-	static int endTime = 0;
-	if (EXTI->PR & EXTI_PR_PR4) {	// Check interrupt flag
-		if (GPIOB->IDR & (1 << 4)) {	//rising
-			endTime = TIM10->CNT;
-			TIM10->CNT = 0;
-		} else {
-			startTime = TIM10->CNT;
-		}
-		uint16_t diff = endTime - startTime;
-		if (diff != 0) {
-			float measuredSpeed = (60.0f * 10000.0f) / (20.0f * (float)diff);
-//			pushBuffer(&hallBuffer, measuredSpeed);
-			pushArray(measuredSpeed);
-		}
-//		speed = (float)getBufferAverage(&hallBuffer);
-		speed = avgArray();
-
-
-
+// TODO: MOVE THE SIGNAL WIRE FROM THE HALL SENSOR TO PB8!!!
+void TIM1_TRG_COM_TIM11_IRQHandler () {
+	if (TIM11->SR & TIM_SR_CC1IF) { // Check capture interrupt flag
+		uint16_t diff = TIM11->CCR1;
+		speed = (60.0f * 10000.0f) / (20.0f * (float)diff);
 	}
-	EXTI->PR |= EXTI_PR_PR4; 		// Clear interrupt flag
+
+	TIM11->SR &= ~(TIM_SR_CC1IF); // cleared by 0 or 1?
 }
 
+// Handler for the small hall sensor, (direction detection)
 void EXTI9_5_IRQHandler () {
 	static int highStart = 0;
 	static int highEnd = 0;
@@ -158,6 +131,43 @@ void EXTI9_5_IRQHandler () {
 
 	EXTI->PR |= EXTI_PR_PR5; 		// Clear interrupt flag
 }
+
+
+//void TIM1_UP_TIM10_IRQHandler () {
+//	if (TIM10->SR & 1) {
+//		speed = 0.0;
+////		pushBuffer(&hallBuffer, 0);
+//		pushArray(0.0);
+//	}
+//	TIM10->SR &= ~(1);
+//
+//}
+
+//void EXTI4_IRQHandler () {
+//	static int startTime = 0;
+//	static int endTime = 0;
+//	if (EXTI->PR & EXTI_PR_PR4) {	// Check interrupt flag
+//		if (GPIOB->IDR & (1 << 4)) {	//rising
+//			endTime = TIM10->CNT;
+//			TIM10->CNT = 0;
+//		} else {
+//			startTime = TIM10->CNT;
+//		}
+//		uint16_t diff = endTime - startTime;
+//		if (diff != 0) {
+//			float measuredSpeed = (60.0f * 10000.0f) / (20.0f * (float)diff);
+////			pushBuffer(&hallBuffer, measuredSpeed);
+//			pushArray(measuredSpeed);
+//		}
+////		speed = (float)getBufferAverage(&hallBuffer);
+//		speed = avgArray();
+//
+//
+//
+//	}
+//	EXTI->PR |= EXTI_PR_PR4; 		// Clear interrupt flag
+//}
+
 
 /*
 void EXTI4_IRQHandler () {

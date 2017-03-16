@@ -24,8 +24,10 @@ typedef struct{
 */
 void circularBufferInit(CircularBUFFER*, int, int);
 void pushBuffer(CircularBUFFER*, int);
+void fillBuffer(CircularBUFFER*, int);
 int pullBuffer(CircularBUFFER*, int);
 
 int getBufferAverage(CircularBUFFER*);
+int majorityBuffer(CircularBUFFER*);
 
 #endif /*CIRCULARBUFFER*/

@@ -16,6 +16,12 @@ void pushBuffer (CircularBUFFER *buff, int value) {
 	buff->buffer[buff->indexPointer] = value;
 }
 
+void fillBuffer (CircularBUFFER *buff, int value) {
+	for (int i = 0; i < buff->size; i++) {
+		buff->buffer[i] = value;
+	}
+}
+
 int majorityBuffer (CircularBUFFER *buff) {
 	int countZero = 0;
 	int countOne = 0;
