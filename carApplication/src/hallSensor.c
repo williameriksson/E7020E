@@ -5,27 +5,40 @@
 #define usToMpsFourM(t) 100000000.0 / ((float)t * 4.0)
 
 CircularBUFFER hallBuffer;
-
+int lowTime = 0;
+int highTime = 0;
 
 void initHallSensor() {
 	__disable_irq();
 	circularBufferInit(&hallBuffer, 0, 4);
 
 	speed = 0;
+	direction = 1;
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB, if we need to read it, but prolly not
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
 	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB; // Set external interrupt EXTI4 for PB4
 	EXTI->FTSR |= EXTI_FTSR_TR4; // Enable interrupt on falling edge for TR4
-	EXTI->IMR |= EXTI_IMR_MR4; // Unmask the interrupt register for MR2 (Active for PB4)
+	EXTI->IMR |= EXTI_IMR_MR4; // Unmask the interrupt register for MR4 (Active for PB4)
+
+	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI5_PB; // Set external interrupt EXTI4 for PB5
+	EXTI->RTSR |= EXTI_RTSR_TR5; // Enable interrupt on rising edge for TR5
+	EXTI->FTSR |= EXTI_FTSR_TR5; // Enable interrupt on falling edge for TR5
+	EXTI->IMR |= EXTI_IMR_MR5; // Unmask the interrupt register for MR5 (Active for PB5)
 
 	//RCC->APB1ENR |= RCC_APB1ENR_TIM5EN; // Enable clock for TIM5
 
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	TIM10->ARR = 10000; // Auto reload at max
+	TIM10->ARR = 10000; // Auto reload
 	TIM10->PSC = 10000 - 1; // Prescale to 10kHz
 	TIM10->DIER |= TIM_DIER_UIE;
 	TIM10->CR1 |= TIM_CR1_CEN; // Enable TIM5
+
+	RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
+	TIM5->ARR = 0xFFFFFFFF; // Auto reload at max
+	TIM5->PSC = 10000 - 1; // Prescale to 10kHz
+	//TIM5->DIER |= TIM_DIER_UIE;
+	TIM5->CR1 |= TIM_CR1_CEN; // Enable TIM5
 
 
 
@@ -38,6 +51,10 @@ void initHallSensor() {
 
 	NVIC_SetPriority(EXTI4_IRQn, 15); // Set the priority, this should probably be changed..
 	NVIC_EnableIRQ(EXTI4_IRQn); // Enable the interrupt
+
+
+	NVIC_SetPriority(EXTI9_5_IRQn, 15); // Set the priority, this should probably be changed..
+	NVIC_EnableIRQ(EXTI9_5_IRQn); // Enable the interrupt
 
 }
 
@@ -74,6 +91,28 @@ void EXTI4_IRQHandler () {
 
 	}
 	EXTI->PR |= EXTI_PR_PR4; 		// Clear interrupt flag
+}
+
+void EXTI9_5_IRQHandler () {
+	static int highStart = 0;
+	static int highEnd = 0;
+
+	if (EXTI->PR & EXTI_PR_PR5) {	// Check interrupt flag
+		if (GPIOB->IDR & (1 << 5)) { // Rising
+			highStart = TIM5->CNT;
+			lowTime = highStart - highEnd;
+		} else { 					// Falling
+			highEnd = TIM5->CNT;
+			highTime = highEnd - highStart;
+		}
+	}
+
+	if (highTime > lowTime) {
+		direction = 1;
+	} else {
+		direction = 0;
+	}
+	EXTI->PR |= EXTI_PR_PR5; 		// Clear interrupt flag
 }
 
 /*
