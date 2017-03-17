@@ -43,6 +43,8 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_nucleo.h"
 
+void decisionMaker(void);
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

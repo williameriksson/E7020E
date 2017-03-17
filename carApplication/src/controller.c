@@ -7,11 +7,11 @@ float looptime = 0.1; //looptime interval in seconds
 int count;
 void initController() {
 	count = 0;
-	Kp = 1.0;
-	Ki = 0.0;
-	Kd = 0.0;
+	Kp = 0.6;
+	Ki = 0.02;
+	Kd = 1.2;
 	//Init for controller on TIM9
-	referenceSpeed = 12.0f;
+	referenceSpeed = 10.0f;
 	__disable_irq();
 	//for testing
 //	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; //Enable GPIOA
@@ -54,7 +54,7 @@ void controlLoop(float desiredSpeed, float currentSpeed) {
 	float derivative = err - prevErr;
 	float integral = prevIntegral + err;
 	float output = Kp * err + (Ki * integral * looptime) + (Kd * derivative /looptime);
-	float currentpw = TIM2->ARR - TIM2->CCR3;
+	//float currentpw = TIM2->ARR - TIM2->CCR3;
 
 	prevErr = err;
 	prevIntegral = integral;

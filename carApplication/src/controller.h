@@ -10,7 +10,8 @@ float Kp;
 float Ki;
 float Kd;
 
-void initController();
+void initController(void);
 void controlLoop(float, float);
+void resetPID(void);
 
 #endif /* CONTROLLER_H_ */

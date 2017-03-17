@@ -1,8 +1,8 @@
 #include "userButton.h"
-#include "analog.h"
+#include "servoControl.h"
 
 void initUserButton() {
-	enableSensor = 0;
+	enableTurning = 0;
 	__disable_irq();
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 	//GPIOC->PUPDR |= GPIO_PUPDR_PUPDR13_1;
@@ -19,14 +19,12 @@ void initUserButton() {
 int toggle = 0;
 void EXTI15_10_IRQHandler(void) {
 	EXTI->PR |= EXTI_PR_PR13;
-	singleADC();
-//	enableSensor = 1;
-//	if(toggle) {
-//		toggle = 0;
-//		setSpeed(0);
-//	}
-//	else {
-//		toggle = 1;
-//		setSpeed(-14);
-//	}
+	if(toggle) {
+		enableTurning = 1;
+	}
+	else {
+		enableTurning = 0;
+		turnReset();
+	}
+	toggle = !toggle;
 }

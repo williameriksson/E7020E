@@ -6,7 +6,7 @@
 #include "motorControl.h"
 #include "servoControl.h"
 
-int enableSensor;
+int enableTurning;
 
 void initUserButton(void);
 

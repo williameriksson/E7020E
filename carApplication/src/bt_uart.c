@@ -78,7 +78,10 @@ void USART6_IRQHandler (void) {
 			Kp = pidParams[0];
 			Ki = pidParams[1];
 			Kd = pidParams[2];
+			USART6->DR = 107;
+			resetPID();
 		}
+
 		else if((int)ch == 58) {
 			float pidValue = (float)atof(number);
 
