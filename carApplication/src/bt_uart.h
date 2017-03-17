@@ -25,6 +25,9 @@ typedef struct{
 //typedef struct{
 //}FIFO_TypeDef;
 
+void tunePID(uint8_t);
+void controlCar(uint8_t);
+
 
 void initUART();
 //void takeAction();

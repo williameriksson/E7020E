@@ -6,6 +6,8 @@
 
 #define BAUDRATE 9600
 #define USARTBUFFSIZE 16
+#define TUNE 1
+#define CONTROL 2
 volatile FIFO_TypeDef U2Rx, U2Tx;
 
 
@@ -23,8 +25,8 @@ volatile FIFO_TypeDef U2Rx, U2Tx;
 
 
 void initUART () {
-	BufferInit(&U2Rx);
-	BufferInit(&U2Tx);
+//	BufferInit(&U2Rx);
+//	BufferInit(&U2Tx);
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
 	GPIOC->MODER |= GPIO_MODER_MODER7_1 | GPIO_MODER_MODER6_1;
@@ -53,10 +55,10 @@ void initUART () {
 //	}
 //}
 
-void echoUART() {
-	uint8_t ch = BufferGet(&U2Rx, &ch);
-	Usart2Put(ch);
-}
+//void echoUART() {
+//	uint8_t ch = BufferGet(&U2Rx, &ch);
+//	Usart2Put(ch);
+//}
 
 //New USART6 Interrupt handler with buffer
 
@@ -65,99 +67,126 @@ int numPoint = 0;
 float pidParams[3];
 int pidPoint = 0;
 
+int commandMode = 0;
+
 void USART6_IRQHandler (void) {
-	char delimiter = ":"; //ascii 58
-	char endstring = ";"; //ascii 59
+//	char delimiter = ":"; //ascii 58
+//	char endstring = ";"; //ascii 59
 	uint8_t ch;
 	if (USART6->SR & USART_SR_RXNE){
 		ch=(uint8_t)USART6->DR;
-
-		if((int)ch == 59) {
-			pidPoint = 0;
-			numPoint = 0;
-			Kp = pidParams[0];
-			Ki = pidParams[1];
-			Kd = pidParams[2];
-			USART6->DR = 107;
-			resetPID();
+		if((int)ch == 84) { //ascii "T"
+			commandMode = TUNE;
 		}
-
-		else if((int)ch == 58) {
-			float pidValue = (float)atof(number);
-
-			pidParams[pidPoint] = pidValue;
-			pidPoint++;
-			numPoint = 0;
+		else if((int)ch == 67) { //ascii "C"
+			commandMode = CONTROL;
 		}
 		else {
-			number[numPoint] = ch;
-			numPoint++;
+			switch(commandMode) {
+				case TUNE:
+					tunePID(ch);
+					break;
+				case CONTROL:
+					controlCar(ch);
+					break;
+				default:
+					break;
+			}
 		}
-
 	}
 	if (USART6->SR & USART_SR_TXE) {
 		//USART->DR = ch;
 		//if (BufferGet(&U2Tx , &ch) == SUCCESS) {
 		//USART6->DR = ch;
-
 	}
 		//else {
 	USART6->CR1 &= ~USART_CR1_TXEIE;
 		//}
+}
 
+void tunePID(uint8_t ch) {
+	if((int)ch == 59) {
+		pidPoint = 0;
+		numPoint = 0;
+		Kp = pidParams[0];
+		Ki = pidParams[1];
+		Kd = pidParams[2];
+		USART6->DR = 84; //T
+		resetPID();
+		commandMode = 0;
+	}
+
+	else if((int)ch == 58) {
+		float pidValue = (float)atof(number);
+
+		pidParams[pidPoint] = pidValue;
+		pidPoint++;
+		numPoint = 0;
+	}
+	else {
+		number[numPoint] = ch;
+		numPoint++;
+	}
 
 }
 
-
-//Init buffer
-void BufferInit(__IO FIFO_TypeDef *buffer){
-	buffer->count = 0;
-	buffer->in = 0;
-	buffer->out = 0;
-}
-
-//But byte in buffer
-ErrorStatus BufferPut(__IO FIFO_TypeDef *buffer, uint8_t ch) {
-	if(buffer->count==USARTBUFFSIZE)
-		return ERROR;//buffer full
-	buffer->buff[buffer->in++]=ch;
-	buffer->count++;
-	if(buffer->in==USARTBUFFSIZE)
-		buffer->in=0;//start from beginning
-	return SUCCESS;
-}
-
-//Get byte from buffer
-ErrorStatus BufferGet(__IO FIFO_TypeDef *buffer, uint8_t *ch) {
-	if(buffer->count==0)
-		return ERROR;//buffer empty
-	*ch=buffer->buff[buffer->out++];
-	buffer->count--;
-	if(buffer->out==USARTBUFFSIZE)
-		buffer->out=0;//start from beginning
-	return SUCCESS;
-}
-//Check buffer status
-ErrorStatus BufferIsEmpty(__IO FIFO_TypeDef buffer) {
-    if(buffer.count==0)
-        return SUCCESS;//buffer full
-    return ERROR;
-}
-
-void Usart2Put(uint8_t ch) {
-	BufferPut(&U2Tx, ch);
-	USART6->CR1 |= USART_CR1_TXEIE;
+void controlCar(uint8_t ch) {
+	commandMode = 0;
+	USART6->DR = 67; //C
 }
 
 
 
-
-uint8_t Usart2Get(void) {
-	uint8_t ch;
-	while (BufferIsEmpty(U2Rx) == SUCCESS);
-	BufferGet (&U2Rx, &ch);
-	return ch;
-}
+// CODE GRAVEYARD BELOW
+////Init buffer
+//void BufferInit(__IO FIFO_TypeDef *buffer){
+//	buffer->count = 0;
+//	buffer->in = 0;
+//	buffer->out = 0;
+//}
+//
+////But byte in buffer
+//ErrorStatus BufferPut(__IO FIFO_TypeDef *buffer, uint8_t ch) {
+//	if(buffer->count==USARTBUFFSIZE)
+//		return ERROR;//buffer full
+//	buffer->buff[buffer->in++]=ch;
+//	buffer->count++;
+//	if(buffer->in==USARTBUFFSIZE)
+//		buffer->in=0;//start from beginning
+//	return SUCCESS;
+//}
+//
+////Get byte from buffer
+//ErrorStatus BufferGet(__IO FIFO_TypeDef *buffer, uint8_t *ch) {
+//	if(buffer->count==0)
+//		return ERROR;//buffer empty
+//	*ch=buffer->buff[buffer->out++];
+//	buffer->count--;
+//	if(buffer->out==USARTBUFFSIZE)
+//		buffer->out=0;//start from beginning
+//	return SUCCESS;
+//}
+////Check buffer status
+//ErrorStatus BufferIsEmpty(__IO FIFO_TypeDef buffer) {
+//    if(buffer.count==0)
+//        return SUCCESS;//buffer full
+//    return ERROR;
+//}
+//
+//void Usart2Put(uint8_t ch) {
+//	BufferPut(&U2Tx, ch);
+//	USART6->CR1 |= USART_CR1_TXEIE;
+//}
+//
+//
+//
+//
+//uint8_t Usart2Get(void) {
+//	uint8_t ch;
+//	while (BufferIsEmpty(U2Rx) == SUCCESS);
+//	BufferGet (&U2Rx, &ch);
+//	return ch;
+//}
 
 //int pollUART() {
 //
