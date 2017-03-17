@@ -44,6 +44,12 @@ void accelerate(float amount) {
 	else if(pw > maxPW) {
 		pw = maxPW;
 	}
+
+	if (pw > 14340 - 1 && pw < 15145 - 1 && amount > 0) {
+		pw = 14340;
+	} else if (pw > 14340 - 1 && pw < 15145 - 1 && amount < 0) {
+		pw = 15145;
+	}
 	TIM2->CCR3 = 200000 - pw - 1;
 }
 

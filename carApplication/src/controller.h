@@ -6,6 +6,9 @@
 
 float testInput; //for internal testing of the controller.
 float referenceSpeed;
+float Kp;
+float Ki;
+float Kd;
 
 void initController();
 void controlLoop(float, float);

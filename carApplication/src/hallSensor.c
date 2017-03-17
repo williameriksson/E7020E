@@ -36,6 +36,7 @@ void initHallSensor() {
 	speed = 0;
 	direction = 1;
 	fillBuffer(&directionBuffer, 1);
+	fillBuffer(&hallBuffer, 65000);
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable clock GPIOB
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // Enable SYSCFG clock
@@ -46,18 +47,21 @@ void initHallSensor() {
 	//TIM5->DIER |= TIM_DIER_UIE;
 	TIM5->CR1 |= TIM_CR1_CEN; // Enable TIM5
 
-	RCC->APB1ENR |= RCC_APB2ENR_TIM11EN; // Enable clock for TIM11
+	RCC->APB2ENR |= RCC_APB2ENR_TIM11EN; // Enable clock for TIM11
 	TIM11->ARR = 0xFFFF; // Auto reload
-	TIM11-> PSC = 10000 - 1; // Prescaler
+	TIM11->PSC = 10000 - 1; // Prescaler
 	TIM11->CCMR1 |= TIM_CCMR1_CC1S_0; // Configure channel CC1 as input, IC1 is mapped on TI1
-	// CCMR1 offers different filering settings in the IC1F field, might wanna look that up.
+	// CCMR1 offers different filtering settings in the IC1F field, might wanna look that up.
+	// TIM11->CCMR1 |= TIM_CCMR1_IC1F_1;
 	TIM11->CCER |= TIM_CCER_CC1P; // Capture on falling edge
 	TIM11->CCER |= TIM_CCER_CC1E; // Enable capture
+	TIM11->DIER |= TIM_DIER_CC1IE; // Enable capture interrupt
+	//TIM11->DIER |= TIM_DIER_UIE;
 	TIM11->CR1 |= TIM_CR1_CEN; // Enable TIM11
 	// Read captured value from TIM11->CCR1
 
-	GPIOB->MODER |= GPIO_MODER_MODER8_1; // Set PB8 to AF mode
-	GPIOB->AFR[1] |= GPIO_AF3_TIM11; // Select TIM11 CH1 as AF for PB8
+	GPIOB->MODER |= GPIO_MODER_MODER9_1; // Set PB9 to AF mode
+	GPIOB->AFR[1] |= (GPIO_AF3_TIM11 << 4); // Select TIM11 CH1 as AF for PB9
 
 
 //	SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB; // Set external interrupt EXTI4 for PB4
@@ -97,14 +101,23 @@ void initHallSensor() {
 }
 
 
-// TODO: MOVE THE SIGNAL WIRE FROM THE HALL SENSOR TO PB8!!!
 void TIM1_TRG_COM_TIM11_IRQHandler () {
+	static uint16_t startTime = 0;
 	if (TIM11->SR & TIM_SR_CC1IF) { // Check capture interrupt flag
-		uint16_t diff = TIM11->CCR1;
-		speed = (60.0f * 10000.0f) / (20.0f * (float)diff);
+		uint16_t endTime = TIM11->CCR1;
+		uint16_t diff = endTime - startTime;
+		pushBuffer(&hallBuffer, diff);
+		uint16_t filteredValue = getBufferAverage(&hallBuffer);
+		speed = (2.0f * 10000.0f) / (2.0f * (float)filteredValue);
+		startTime = endTime;
+		TIM11->SR &= ~(TIM_SR_CC1IF); // Clear capture flag
 	}
+//	else if (TIM11->SR & TIM_SR_UIF) {
+//		speed = 0.0;
+//		TIM11->SR &= ~(TIM_SR_UIF);
+//	}
 
-	TIM11->SR &= ~(TIM_SR_CC1IF); // cleared by 0 or 1?
+
 }
 
 // Handler for the small hall sensor, (direction detection)
