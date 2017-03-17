@@ -1,13 +1,8 @@
-/*
- * bt_uart.c
- *
- *  Created on: 20 feb. 2017
- *      Author: Robin
- */
-
 #include "bt_uart.h"
 #include "stdlib.h"
 //#include "stdbool.h"
+#include "string.h"
+#include "controller.h"
 
 #define BAUDRATE 9600
 #define USARTBUFFSIZE 16
@@ -34,7 +29,7 @@ void initUART () {
 	RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
 	GPIOC->MODER |= GPIO_MODER_MODER7_1 | GPIO_MODER_MODER6_1;
 	GPIOC->AFR[0] |= (GPIO_AF8_USART6 << 24);
-	GPIOC->AFR[0] |= (GPIO_AF8_USART6 <<28);
+	GPIOC->AFR[0] |= (GPIO_AF8_USART6 << 28);
 	USART6->CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 	USART6->CR1 |= USART_CR1_RXNEIE; //Enable UART RXNE Interrupt
 	USART6->CR1 &= ~USART_CR1_TXEIE; //Disable UART TXE Interrupt
@@ -64,15 +59,37 @@ void echoUART() {
 }
 
 //New USART6 Interrupt handler with buffer
+
+char number[5];
+int numPoint = 0;
+float pidParams[3];
+int pidPoint = 0;
+
 void USART6_IRQHandler (void) {
+	char delimiter = ":"; //ascii 58
+	char endstring = ";"; //ascii 59
 	uint8_t ch;
 	if (USART6->SR & USART_SR_RXNE){
 		ch=(uint8_t)USART6->DR;
-		//BufferPut(&U2Rx, ch);
-		//echoUART();
-		USART6->DR = ch;
-		USART6->CR1 |= USART_CR1_TXEIE;
-		//USART6->DR = ch;
+
+		if((int)ch == 59) {
+			pidPoint = 0;
+			numPoint = 0;
+			Kp = pidParams[0];
+			Ki = pidParams[1];
+			Kd = pidParams[2];
+		}
+		else if((int)ch == 58) {
+			float pidValue = (float)atof(number);
+
+			pidParams[pidPoint] = pidValue;
+			pidPoint++;
+			numPoint = 0;
+		}
+		else {
+			number[numPoint] = ch;
+			numPoint++;
+		}
 
 	}
 	if (USART6->SR & USART_SR_TXE) {
