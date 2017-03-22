@@ -9,12 +9,14 @@ typedef struct {
 	int frontLeft;
 	int frontMiddle;
 	int frontRight;
+	int back;
 } DistanceStruct;
 
 DistanceStruct distance;
 CircularBUFFER distanceBufferLeft;
 CircularBUFFER distanceBufferMiddle;
 CircularBUFFER distanceBufferRight;
+CircularBUFFER distanceBufferBack;
 
 void initUltrasonic(void);
 

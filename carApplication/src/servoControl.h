@@ -8,6 +8,8 @@ void initUserButton(void);
 void initServoControl(void);
 
 void turnReset(void);
+void turnHalfLeft(void);
+void turnHalfRight(void);
 void turnLeft(void);
 void turnRight(void);
 

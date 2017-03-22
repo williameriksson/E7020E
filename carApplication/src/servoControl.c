@@ -31,6 +31,17 @@ void turnReset() {
 	TIM2->CCR2 = 200000 - 15000 - 1;
 }
 
+void turnHalfLeft() {
+	int maxLeft = 16000;
+	TIM2->CCR2 = 200000 - maxLeft - 1;
+}
+
+void turnHalfRight() {
+	int maxRight = 14000;
+	TIM2->CCR2 = 200000 - maxRight - 1;
+}
+
+
 void turnLeft() {
 	int maxLeft = 17000;
 	TIM2->CCR2 = 200000 - maxLeft - 1;

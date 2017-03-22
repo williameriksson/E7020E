@@ -2,7 +2,7 @@
 #include "servoControl.h"
 
 void initUserButton() {
-	enableTurning = 0;
+	enableTurning = 1;
 	__disable_irq();
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
 	//GPIOC->PUPDR |= GPIO_PUPDR_PUPDR13_1;
