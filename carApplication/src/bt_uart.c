@@ -105,7 +105,7 @@ void USART6_IRQHandler (void) {
 }
 
 void tunePID(uint8_t ch) {
-	if((int)ch == 59) {
+	if((int)ch == 59) { // ";" recieved
 		pidPoint = 0;
 		numPoint = 0;
 		Kp = pidParams[0];
@@ -116,7 +116,7 @@ void tunePID(uint8_t ch) {
 		commandMode = 0;
 	}
 
-	else if((int)ch == 58) {
+	else if((int)ch == 58) { // ":" recieved
 		float pidValue = (float)atof(number);
 
 		pidParams[pidPoint] = pidValue;
@@ -130,9 +130,27 @@ void tunePID(uint8_t ch) {
 
 }
 
+int command = 0;
+
 void controlCar(uint8_t ch) {
-	commandMode = 0;
 	USART6->DR = 67; //C
+	if((int)ch == 59) { // ";" recieved
+		commandMode = 0;
+		if(command == 1) {
+			resetSpeed();
+//			stopController();
+		}
+		else if(command == 0) {
+//			startController();
+		}
+		//command finished
+	}
+	else if((int)ch == 48){ //0 recieved
+		command = 0;
+	}
+	else if((int)ch == 49){ //1 recieved
+		command = 1;
+	}
 }
 
 
