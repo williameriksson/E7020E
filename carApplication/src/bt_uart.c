@@ -3,6 +3,7 @@
 //#include "stdbool.h"
 #include "string.h"
 #include "controller.h"
+#include "motorControl.h"
 
 #define BAUDRATE 9600
 #define USARTBUFFSIZE 16
@@ -137,11 +138,11 @@ void controlCar(uint8_t ch) {
 	if((int)ch == 59) { // ";" recieved
 		commandMode = 0;
 		if(command == 1) {
-			resetSpeed();
-//			stopController();
+			startController();
 		}
 		else if(command == 0) {
-//			startController();
+			stopController();
+			resetSpeed();
 		}
 		//command finished
 	}
@@ -156,6 +157,7 @@ void controlCar(uint8_t ch) {
 
 
 // CODE GRAVEYARD BELOW
+
 ////Init buffer
 //void BufferInit(__IO FIFO_TypeDef *buffer){
 //	buffer->count = 0;

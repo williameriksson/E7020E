@@ -5,6 +5,7 @@
 float looptime = 0.1; //looptime interval in seconds
 
 int count;
+int runController = 0;
 void initController() {
 	count = 0;
 	Kp = 0.6;
@@ -26,6 +27,7 @@ void initController() {
 
 	NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
 	NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 10);
+	startController();
 }
 //PID parameters (requires tuning)
 
@@ -41,6 +43,16 @@ void resetPID() {
 	prevErr = 0;
 	prevIntegral = 0;
 }
+
+void startController() {
+	runController = 1;
+}
+
+void stopController() {
+	runController = 0;
+	resetPID();
+}
+
 
 //Feedback PID controller.
 void controlLoop(float desiredSpeed, float currentSpeed) {
@@ -96,7 +108,9 @@ void controlLoop(float desiredSpeed, float currentSpeed) {
 
 void TIM1_BRK_TIM9_IRQHandler (void) {
 	//get hallsensor value
-	controlLoop(referenceSpeed, speed);
+	if(runController) {
+		controlLoop(referenceSpeed, speed);
+	}
 	TIM9->SR &= ~(1); //reset the int handler
 //	GPIOA->ODR ^= (1<<5);
 }

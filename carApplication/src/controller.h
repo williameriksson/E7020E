@@ -13,5 +13,7 @@ float Kd;
 void initController(void);
 void controlLoop(float, float);
 void resetPID(void);
+void startController(void);
+void stopController(void);
 
 #endif /* CONTROLLER_H_ */
